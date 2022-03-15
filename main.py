@@ -48,47 +48,53 @@ threading1.start()
 
 
 def task10minutes(): #10分間に1回実行するための関数として定義します。
-    # info()
+    info()
 
-# def info():
+def info():
     
-
-    # get market depth
-    depth = client.get_order_book(symbol='BUSDUSDT')
-
-    # print(depth)
 
 	# - ウォレット残高
     account_info = client.get_account_snapshot(type='SPOT')
     total_asset_of_Btc = account_info['snapshotVos'][0]['data']['totalAssetOfBtc']
-    print(f'total asset:{total_asset_of_Btc}')
-	# - 損益
-    [print(x) for x in account_info['snapshotVos'][0]['data']['balances']]
-	# - 自分が持つポジションや通貨情報
-    
+    print('ウォレット残高')
+    print(f'ウォレット残高(Btc):{total_asset_of_Btc}')
     # どのくらいBNBの残高
-    fees = client.get_trade_fee(symbol='BUSDUSDT')
-    print('200') 
+    bnb_balance = client.get_asset_balance(asset='BNB')
+    print(f'BNB残高:{bnb_balance}')
+
+
+
+	# - 損益
+    print('損益')
+	# - 自分が持つポジションや通貨情報
+    [print(x) for x in account_info['snapshotVos'][0]['data']['balances']]
+
 
 # schedule.every(10).minutes.do(task10minutes) # task10minutesを10分に1回実行します
 
 times = 10
 
+def order():
+    order = client.pcreate_test_order(
+        symbol='BUSDUSDT',
+        side=SIDE_BUY,
+        type=ORDER_TYPE_LIMIT,
+        timeInForce=TIME_IN_FORCE_GTC,
+        quantity=100,
+        price='0.00001')
 
 def task10seconds(): #10秒に1回実行される関数として定義します
     global times
-    print(f'このタスクは実行開始から{times}秒後に実行されています')
+    # print(f'このタスクは実行開始から{times}秒後に実行されています')
     times += 10
 
-    # order = client.pcreate_test_order(
-    #     symbol='BUSDUSDT',
-    #     side=SIDE_BUY,
-    #     type=ORDER_TYPE_LIMIT,
-    #     timeInForce=TIME_IN_FORCE_GTC,
-    #     quantity=100,
-    #     price='0.00001')
-    
+
+
+
     # print(order)
+
+def calculate_quantity():
+    pass
 
 schedule.every(10).seconds.do(task10seconds) #task10secondsをに1回実行します
 
@@ -96,20 +102,22 @@ schedule.every(10).seconds.do(task10seconds) #task10secondsをに1回実行し�
 def main():
     print(help)
     while True:
-        c = sys.stdin.read(4)
-        if c == 'quit':
+        c = sys.stdin.readline()
+
+        print(f'読み込んだ文字{str(c)}')
+        if 'quit' in c:
             sys.exit()
-        elif c == 'help':
+        elif 'help' in c:
             print(help)
-        elif c == 'info':
-            task10minutes()
-            # info()
+        elif  'info' in c:
+            info()
 
 if __name__ == '__main__':
     main()
     pass
 
-# APIエンドポイントはBinanceによって1秒あたり20リクエストでレート制限されています。
+# 制約事項
+# APIエンドポイントはBinanceによって1秒あたり20リクエストでレート制限
 # 1200リクエスト/分
 # 1秒間に10件の注文
 # 24時間当たり100,000件の注文
