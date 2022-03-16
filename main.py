@@ -22,7 +22,8 @@ help = 'このプログラムはbinanceにアクセスし、情報取得及び�
 以下のコマンドを受け付けます\n \
 help : このヘルプを表示\n \
 quit : プログラムを終了する\n \
-info : 口座関係情報を出力する(10分に1回、自動的に出力されます)\n'
+info : 口座関係情報を出力する(10分に1回、自動的に出力されます)\n \
+order: 注文をする\n'
 
 
 
@@ -75,13 +76,22 @@ def info():
 times = 10
 
 def order():
-    order = client.pcreate_test_order(
-        symbol='BUSDUSDT',
-        side=SIDE_BUY,
-        type=ORDER_TYPE_LIMIT,
-        timeInForce=TIME_IN_FORCE_GTC,
-        quantity=100,
-        price='0.00001')
+    symbol_info = client.get_symbol_info('BUSDUSDT')
+    pass
+    minprice = symbol_info['filters'][0]['minPrice'] #'0.00010000'
+    maxprice = symbol_info['filters'][0]['maxPrice'] #'1000.00000000'
+    ticksize = symbol_info['filters'][0]['tickSize'] #'0.00010000'
+    minQty = symbol_info['filters'][2]['minQty'] #'1.00000000'
+    maxQty = symbol_info['filters'][2]['maxQty'] #'15000000.00000000'
+    stepSize = symbol_info['filters'][2]['stepSize'] #'1.00000000'
+    [print(x) for x in symbol_info['filters']]
+    # order = client.create_test_order(
+    #     symbol='BUSDUSDT',
+    #     side=SIDE_BUY,
+    #     type=ORDER_TYPE_LIMIT,
+    #     timeInForce=TIME_IN_FORCE_GTC,
+    #     quantity=100,
+    #     price='0.00001')
 
 def task10seconds(): #10秒に1回実行される関数として定義します
     global times
@@ -111,6 +121,8 @@ def main():
             print(help)
         elif  'info' in c:
             info()
+        elif 'order' in c:
+            order()
 
 if __name__ == '__main__':
     main()
@@ -121,3 +133,8 @@ if __name__ == '__main__':
 # 1200リクエスト/分
 # 1秒間に10件の注文
 # 24時間当たり100,000件の注文
+
+# MLによる制約
+
+
+# https://sammchardy.github.io/binance-order-filters/
