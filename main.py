@@ -77,7 +77,6 @@ times = 10
 
 def order():
     symbol_info = client.get_symbol_info('BUSDUSDT')
-    pass
     minprice = symbol_info['filters'][0]['minPrice'] #'0.00010000'
     maxprice = symbol_info['filters'][0]['maxPrice'] #'1000.00000000'
     ticksize = symbol_info['filters'][0]['tickSize'] #'0.00010000'
@@ -85,6 +84,35 @@ def order():
     maxQty = symbol_info['filters'][2]['maxQty'] #'15000000.00000000'
     stepSize = symbol_info['filters'][2]['stepSize'] #'1.00000000'
     [print(x) for x in symbol_info['filters']]
+
+    symbol='BUSDUSDT'
+    side=SIDE_BUY
+    type=ORDER_TYPE_LIMIT
+    timeInForce=TIME_IN_FORCE_GTC
+    quantity = 1.0
+    price='0.0001'
+
+    exitflg = False
+
+    #priceチェック
+    if maxprice < price:
+        print('価格が最大値を超えています。')
+        exitflg = True
+    elif price > minprice:
+        print('価格が最小値を下回っています。')
+        exitflg = True
+
+    if float(maxQty) < float(quantity):
+        print('購入量が最大値を超えています')
+        exitflg = True
+    elif float(minQty) > float(quantity):
+        print('購入量が最小値を下回っています')
+        exitflg = True
+
+    if exitflg:
+        print('order関数を終了します')
+        return False
+
     # order = client.create_test_order(
     #     symbol='BUSDUSDT',
     #     side=SIDE_BUY,
@@ -92,6 +120,8 @@ def order():
     #     timeInForce=TIME_IN_FORCE_GTC,
     #     quantity=100,
     #     price='0.00001')
+
+    print(order)
 
 def task10seconds(): #10秒に1回実行される関数として定義します
     global times
