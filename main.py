@@ -6,6 +6,8 @@ import schedule
 import sys
 import threading
 from binance.enums import *
+from binance.exceptions import BinanceAPIException
+
 
 load_dotenv(verbose=True)
 
@@ -76,7 +78,24 @@ def info():
 times = 10
 
 def order():
-    symbol_info = client.get_symbol_info('BUSDUSDT')
+    symbol='BUSDUSDT'
+    side=SIDE_BUY
+    type=ORDER_TYPE_LIMIT
+    timeInForce=TIME_IN_FORCE_GTC
+    quantity = 1
+    price='0.0001'
+
+    candles = client.get_klines(symbol=symbol, interval=Client.KLINE_INTERVAL_1MINUTE)
+
+    Open_times = [x[0] for x in candles]
+    Opens = [x[1] for x in candles]
+    Highs = [x[2] for x in candles]
+    Lows = [x[3] for x in candles]
+    Closes = [x[4] for x in candles]
+    Volumes = [x[5] for x in candles]
+    Close_times = [x[6] for x in candles]
+
+    symbol_info = client.get_symbol_info(symbol)
     minprice = symbol_info['filters'][0]['minPrice'] #'0.00010000'
     maxprice = symbol_info['filters'][0]['maxPrice'] #'1000.00000000'
     ticksize = symbol_info['filters'][0]['tickSize'] #'0.00010000'
@@ -85,41 +104,45 @@ def order():
     stepSize = symbol_info['filters'][2]['stepSize'] #'1.00000000'
     [print(x) for x in symbol_info['filters']]
 
-    symbol='BUSDUSDT'
-    side=SIDE_BUY
-    type=ORDER_TYPE_LIMIT
-    timeInForce=TIME_IN_FORCE_GTC
-    quantity = 1.0
-    price='0.0001'
 
     exitflg = False
 
     #priceチェック
-    if maxprice < price:
-        print('価格が最大値を超えています。')
+    if float(maxprice) < float(price):
+        print('価格が最大値を超えています {maxprice}以下にしてください')
         exitflg = True
-    elif price > minprice:
-        print('価格が最小値を下回っています。')
+    elif float(price) < float(minprice):
+        print(f'価格が最小値を下回っています {minprice}以上にしてください')
         exitflg = True
 
     if float(maxQty) < float(quantity):
-        print('購入量が最大値を超えています')
+        print(f'購入量が最大値を超えています {maxQty}以下にしてください')
         exitflg = True
     elif float(minQty) > float(quantity):
-        print('購入量が最小値を下回っています')
+        print(f'購入量が最小値を下回っています {minQty}以上にしてください')
         exitflg = True
 
     if exitflg:
         print('order関数を終了します')
         return False
+    else:
+        print('注文が実行可能です')
 
-    # order = client.create_test_order(
-    #     symbol='BUSDUSDT',
-    #     side=SIDE_BUY,
-    #     type=ORDER_TYPE_LIMIT,
-    #     timeInForce=TIME_IN_FORCE_GTC,
-    #     quantity=100,
-    #     price='0.00001')
+
+    try:
+        order = client.create_test_order(
+            symbol=symbol,
+            side=side,
+            type=type,
+            timeInForce=timeInForce,
+            quantity=quantity,
+            price=price)
+    except BinanceAPIException as e:
+        print(e)
+    else:
+        print("Test Order Success")
+
+
 
     print(order)
 
@@ -127,8 +150,6 @@ def task10seconds(): #10秒に1回実行される関数として定義します
     global times
     # print(f'このタスクは実行開始から{times}秒後に実行されています')
     times += 10
-
-
 
 
     # print(order)
