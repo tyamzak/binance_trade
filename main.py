@@ -13,36 +13,21 @@ import decimal
 
 
 #.envファイルにAPIのKey及びSecretを保存しています。
-#.env_templateの書き方を参考にして.envファイルを作成し、main.pyと同じ場所に補完して使用します。
+#.env_templateの書き方を参考にして.envファイルを作成し、main.pyと同じ場所に保存して使用します。
 load_dotenv(verbose=True)
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
+#APIKEYとSECRETを変数に入れます
 api_key = os.environ.get("KEY")
 api_secret = os.environ.get("SECRET")
 
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
-client = Client(api_key, api_secret) #,tld='us') #,testnet=True) # clientの作成　testnet=True にてtest実行が可能
-
-help = 'このプログラムはbinanceにアクセスし、情報取得及び指値注文を行うための学習用プログラムです\n \
-以下のコマンドを受け付けます\n \
-help : このヘルプを表示\n \
-quit : プログラムを終了する\n \
-info : 口座関係情報を出力する(10分に1回、自動的に出力されます)\n \
-order: 注文をする\n'
+client = Client(api_key, api_secret)  # clientの作成
 
 
 
-def background():
-    while True:
-        schedule.run_pending()
-        sleep(1)
 
-
-# now threading1 runs regardless of user input
-threading1 = threading.Thread(target=background)
-threading1.daemon = True
-threading1.start()
 
 
 
@@ -54,8 +39,7 @@ threading1.start()
 
 
 
-def task10minutes(): #10分間に1回実行するための関数として定義します。
-    info()
+
 
 def info():
     
@@ -77,7 +61,7 @@ def info():
     [print(x) for x in account_info['snapshotVos'][0]['data']['balances']]
 
 
-# schedule.every(10).minutes.do(task10minutes) # task10minutesを10分に1回実行します
+
 
 times = 10
 
@@ -184,18 +168,6 @@ def order():
     revhalf_quantity = decimal.Decimal(str(half_base_asset)) // decimal.Decimal(str(stepSize)) * decimal.Decimal(str(stepSize))
     #小数点以下Precision桁の文字列型にする
     revorder_quantity = '{:.{}f}'.format(revhalf_quantity, baseAssetPrecision)
-
-    # #テスト用の値入力
-    # order_price = '0.90000'
-    # order_stopprice = order_price
-    # order_quantity = '12.00000000'
-
-    # revorder_price = '1.20000'
-    # revorder_stopprice = revorder_price
-    # revorder_quantity = '12.00000000'
-
-
-    # [print(x) for x in symbol_info['filters']]
 
 
     exitflg = False
@@ -372,27 +344,42 @@ def order():
                 info()
 
 
+def background():
+    while True:
+        schedule.run_pending() #schedule.every(10)minutes.do()を実行します
+        sleep(1)
 
-def task10seconds(): #10秒に1回実行される関数として定義します
-    global times
-    # print(f'このタスクは実行開始から{times}秒後に実行されています')
-    times += 10
+
+# threading1 は background関数を実行し、ユーザの入力と関係なく動作し続けます。
+threading1 = threading.Thread(target=background)
+threading1.daemon = True
+threading1.start()
 
 
-    # print(order)
+def task10minutes(): #10分間に1回実行するための関数として定義します。
+    info()
 
-def calculate_quantity():
-    pass
 
-schedule.every(10).seconds.do(task10seconds) #task10secondsをに1回実行します
+schedule.every(10).minutes.do(task10minutes) # task10minutesを10分に1回実行します
+
+#起動時のコメント　
+help = 'このプログラムはbinanceにアクセスし、情報取得及び指値注文を行うための学習用プログラムです\n \
+以下のコマンドを受け付けます\n \
+help : このヘルプを表示\n \
+quit : プログラムを終了する\n \
+info : 口座関係情報を出力する(10分に1回、自動的に出力されます)\n \
+order: 注文をする\n'
+
 
 
 def main():
-    print(help)
+    print(help) #helpを呼び出し、ユーザーにコマンド入力を促します
     while True:
-        c = sys.stdin.readline()
+        c = sys.stdin.readline() #ユーザーのコマンド入力を行ごとに読み込みます
 
-        print(f'読み込んだ文字{str(c)}')
+        # print(f'読み込んだ文字{str(c)}')　#デバッグ用　読み込んだ文字をprintします
+
+        #以下、読み込んだ行にコマンドが含まれているか確認をし、含まれていたら関数を実行します
         if 'quit' in c:
             sys.exit()
         elif 'help' in c:
@@ -404,7 +391,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    pass
+
 
 # 制約事項
 # APIエンドポイントはBinanceによって1秒あたり20リクエストでレート制限
