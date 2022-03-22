@@ -343,20 +343,20 @@ def order():
                 print(client.get_open_orders(symbol=order_symbol))
                 info()
 
-
+#別スレッドで常時実行される関数です
 def background():
     while True:
         schedule.run_pending() #schedule.every(10)minutes.do()を実行します
         sleep(1)
 
 
-# threading1 は background関数を実行し、ユーザの入力と関係なく動作し続けます。
+# threading1 は background関数を実行し、ユーザの入力と関係なく動作し続けます
 threading1 = threading.Thread(target=background)
 threading1.daemon = True
 threading1.start()
 
 
-def task10minutes(): #10分間に1回実行するための関数として定義します。
+def task10minutes(): #10分間に1回実行するための関数として定義します
     info()
 
 
